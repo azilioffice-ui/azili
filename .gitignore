@@ -1,0 +1,6 @@
+.env
+homeassistant/
+mosquitto/data/
+mosquitto/log/
+mosquitto/config/passwd
+zigbee2mqtt/data/

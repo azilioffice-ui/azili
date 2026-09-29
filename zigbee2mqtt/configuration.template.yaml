@@ -1,0 +1,16 @@
+# kurulum.sh bu dosyayı ilk kurulumda zigbee2mqtt/data/configuration.yaml olarak kopyalar.
+# MQTT ve USB ayarları docker-compose.yml içinden ortam değişkenleriyle gelir.
+homeassistant:
+  enabled: true
+frontend:
+  enabled: true
+  port: 8080
+mqtt:
+  base_topic: zigbee2mqtt
+serial:
+  port: /dev/ttyACM0
+advanced:
+  log_level: info
+  network_key: GENERATE
+  pan_id: GENERATE
+  ext_pan_id: GENERATE
