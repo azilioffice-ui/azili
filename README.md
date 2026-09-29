@@ -26,6 +26,7 @@ bash scripts/kurulum.sh    # sonra kur
 `kurulum.sh` şunları yapar:
 1. `.env` dosyasını oluşturur, MQTT şifresini rastgele üretir
 2. Zigbee çubuğunu `/dev/serial/by-id/` altında bulur, tipini tahmin eder
+   (çubuk takılı değilse Zigbee2MQTT'yi atlar; çubuğu takınca script tekrar çalıştırılır)
 3. Mosquitto kullanıcısını oluşturur, tüm servisleri başlatır
 
 ## Kurulumdan sonra

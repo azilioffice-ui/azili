@@ -29,7 +29,8 @@ if grep -q 'BURAYA-CUBUK-ADI' .env; then
       *ConBee*|*dresden*) sed -i 's|^ZIGBEE_ADAPTER_TYPE=.*|ZIGBEE_ADAPTER_TYPE=deconz|' .env ;;
     esac
   elif [ "${#cubuklar[@]}" -eq 0 ]; then
-    hata "Zigbee USB çubuğu bulunamadı. Çubuğu tak ve tekrar çalıştır."
+    echo "UYARI: Zigbee USB çubuğu bulunamadı. Şimdilik Zigbee2MQTT kurulmadan devam ediliyor."
+    echo "       Çubuğu taktıktan sonra bu scripti tekrar çalıştır."
   else
     printf '  %s\n' "${cubuklar[@]}"
     hata "Birden fazla USB seri cihaz var. .env içinde ZIGBEE_ADAPTER'ı elle ayarla."
@@ -37,8 +38,13 @@ if grep -q 'BURAYA-CUBUK-ADI' .env; then
 fi
 
 set -a; . ./.env; set +a
-[ -e "$ZIGBEE_ADAPTER" ] || hata "$ZIGBEE_ADAPTER bulunamadı. .env dosyasını kontrol et."
-echo "Zigbee çubuk tipi: $ZIGBEE_ADAPTER_TYPE (yanlışsa .env içinden değiştir)"
+if grep -q 'BURAYA-CUBUK-ADI' .env; then
+  servisler=(homeassistant mosquitto)
+else
+  [ -e "$ZIGBEE_ADAPTER" ] || hata "$ZIGBEE_ADAPTER bulunamadı. Çubuk takılı mı? .env dosyasını kontrol et."
+  echo "Zigbee çubuk tipi: $ZIGBEE_ADAPTER_TYPE (yanlışsa .env içinden değiştir)"
+  servisler=(homeassistant mosquitto zigbee2mqtt)
+fi
 
 # Klasörler ve Zigbee2MQTT ayarı
 mkdir -p homeassistant/config mosquitto/data mosquitto/log zigbee2mqtt/data
@@ -48,14 +54,14 @@ mkdir -p homeassistant/config mosquitto/data mosquitto/log zigbee2mqtt/data
 docker compose run --rm --no-deps mosquitto \
   mosquitto_passwd -b -c /mosquitto/config/passwd "$MQTT_USER" "$MQTT_PASSWORD"
 
-docker compose pull
-docker compose up -d
+docker compose pull "${servisler[@]}"
+docker compose up -d "${servisler[@]}"
 
 ip=$(hostname -I | awk '{print $1}')
 cat <<MSG
 
 Kurulum tamam.
   Home Assistant : http://$ip:8123   (ilk açılış birkaç dakika sürebilir)
-  Zigbee2MQTT    : http://$ip:8080
+  Zigbee2MQTT    : $( [ "${#servisler[@]}" -eq 3 ] && echo "http://$ip:8080" || echo "kurulmadı (Zigbee çubuğu yok)")
   MQTT (HA için) : sunucu 127.0.0.1, port 1883, kullanıcı $MQTT_USER, şifre .env içinde
 MSG
