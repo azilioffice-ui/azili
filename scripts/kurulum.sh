@@ -50,9 +50,14 @@ fi
 mkdir -p homeassistant/config mosquitto/data mosquitto/log zigbee2mqtt/data
 [ -f zigbee2mqtt/data/configuration.yaml ] || cp zigbee2mqtt/configuration.template.yaml zigbee2mqtt/data/configuration.yaml
 
-# Mosquitto şifre dosyası (her çalıştırmada .env ile eşitlenir)
-docker compose run --rm --no-deps mosquitto \
-  mosquitto_passwd -b -c /mosquitto/config/passwd "$MQTT_USER" "$MQTT_PASSWORD"
+# Mosquitto şifre dosyası (her çalıştırmada .env ile eşitlenir).
+# Mosquitto "mosquitto" kullanıcısıyla çalışır: şifre dosyası, data ve log ona ait olmalı.
+docker compose run --rm --no-deps --entrypoint sh \
+  -e MQTT_USER="$MQTT_USER" -e MQTT_PASSWORD="$MQTT_PASSWORD" mosquitto -c '
+    mosquitto_passwd -b -c /mosquitto/config/passwd "$MQTT_USER" "$MQTT_PASSWORD" &&
+    chown mosquitto:mosquitto /mosquitto/config/passwd &&
+    chmod 0600 /mosquitto/config/passwd &&
+    chown -R mosquitto:mosquitto /mosquitto/data /mosquitto/log'
 
 docker compose pull "${servisler[@]}"
 docker compose up -d "${servisler[@]}"
