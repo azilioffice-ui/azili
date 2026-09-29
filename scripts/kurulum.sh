@@ -54,6 +54,7 @@ mkdir -p homeassistant/config mosquitto/data mosquitto/log zigbee2mqtt/data
 # Mosquitto "mosquitto" kullanıcısıyla çalışır: şifre dosyası, data ve log ona ait olmalı.
 docker compose run --rm --no-deps --entrypoint sh \
   -e MQTT_USER="$MQTT_USER" -e MQTT_PASSWORD="$MQTT_PASSWORD" mosquitto -c '
+    rm -f /mosquitto/config/passwd &&
     mosquitto_passwd -b -c /mosquitto/config/passwd "$MQTT_USER" "$MQTT_PASSWORD" &&
     chown mosquitto:mosquitto /mosquitto/config/passwd &&
     chmod 0600 /mosquitto/config/passwd &&
